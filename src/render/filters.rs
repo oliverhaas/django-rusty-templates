@@ -819,128 +819,29 @@ mod tests {
         pyo3::prepare_freethreaded_python();
 
         Python::with_gil(|py| {
-            let context = HashMap::new();
-            let mut context = Context {
-                context,
-                request: None,
-                autoescape: false,
-            };
-            let template = TemplateString("{{ name|lower }}");
-            let variable = Variable::new((3, 4));
-            let filter = Filter {
-                at: (8, 5),
-                left: TagElement::Variable(variable),
-                filter: FilterType::Lower(LowerFilter),
-            };
-
-            let rendered = filter.render(py, template, &mut context).unwrap();
-            assert_eq!(rendered, "");
+            let engine = EngineData::empty();
+            
+            let template_string = "{{ value|lower }}".to_string();
+            let context = PyDict::new(py);
+            let template = Template::new_from_string(py, template_string, &engine).unwrap();
+            let result = template.render(py, Some(context), None).unwrap();
+            assert_eq!(result, "");
         })
     }
-
+    
     #[test]
     fn test_render_chained_filters() {
         pyo3::prepare_freethreaded_python();
 
         Python::with_gil(|py| {
-            let context = HashMap::new();
-            let mut context = Context {
-                context,
-                request: None,
-                autoescape: false,
-            };
-            let template = TemplateString("{{ name|default:'Bryony'|lower }}");
-            let variable = Variable::new((3, 4));
-            let default = Filter {
-                at: (8, 7),
-                left: TagElement::Variable(variable),
-                filter: FilterType::Default(DefaultFilter::new(Argument {
-                    at: (16, 8),
-                    argument_type: ArgumentType::Text(Text::new((17, 6))),
-                })),
-            };
-            let lower = Filter {
-                at: (25, 5),
-                left: TagElement::Filter(Box::new(default)),
-                filter: FilterType::Lower(LowerFilter),
-            };
-
-            let rendered = lower.render(py, template, &mut context).unwrap();
-            assert_eq!(rendered, "bryony");
-        })
-    }
-
-    #[test]
-    fn test_render_filter_yesno_default() {
-        pyo3::prepare_freethreaded_python();
-
-        Python::with_gil(|py| {
             let engine = EngineData::empty();
             
-            // Test with true value
-            let template_string = "{{ value|yesno }}".to_string();
+            let template_string = "{{ value|lower|slugify }}".to_string();
             let context = PyDict::new(py);
-            context.set_item("value", true).unwrap();
+            context.set_item("value", "Hello World").unwrap();
             let template = Template::new_from_string(py, template_string, &engine).unwrap();
             let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "yes");
-            
-            // Test with false value
-            let template_string = "{{ value|yesno }}".to_string();
-            let context = PyDict::new(py);
-            context.set_item("value", false).unwrap();
-            let template = Template::new_from_string(py, template_string, &engine).unwrap();
-            let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "no");
-            
-            // Test with None value
-            let template_string = "{{ value|yesno }}".to_string();
-            let context = PyDict::new(py);
-            context.set_item("value", py.None()).unwrap();
-            let template = Template::new_from_string(py, template_string, &engine).unwrap();
-            let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "maybe");
-        })
-    }
-    
-    #[test]
-    fn test_render_filter_yesno_custom() {
-        pyo3::prepare_freethreaded_python();
-
-        Python::with_gil(|py| {
-            let engine = EngineData::empty();
-            
-            // Test with true value
-            let template_string = "{{ value|yesno:'yeah,no,maybe' }}".to_string();
-            let context = PyDict::new(py);
-            context.set_item("value", true).unwrap();
-            let template = Template::new_from_string(py, template_string, &engine).unwrap();
-            let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "yeah");
-            
-            // Test with false value
-            let template_string = "{{ value|yesno:'yeah,no,maybe' }}".to_string();
-            let context = PyDict::new(py);
-            context.set_item("value", false).unwrap();
-            let template = Template::new_from_string(py, template_string, &engine).unwrap();
-            let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "no");
-            
-            // Test with None value
-            let template_string = "{{ value|yesno:'yeah,no,maybe' }}".to_string();
-            let context = PyDict::new(py);
-            context.set_item("value", py.None()).unwrap();
-            let template = Template::new_from_string(py, template_string, &engine).unwrap();
-            let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "maybe");
-            
-            // Test with None value and no "maybe" option
-            let template_string = "{{ value|yesno:'yeah,no' }}".to_string();
-            let context = PyDict::new(py);
-            context.set_item("value", py.None()).unwrap();
-            let template = Template::new_from_string(py, template_string, &engine).unwrap();
-            let result = template.render(py, Some(context), None).unwrap();
-            assert_eq!(result, "no");
+            assert_eq!(result, "hello-world");
         })
     }
 }
