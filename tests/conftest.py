@@ -13,9 +13,13 @@ def django_template():
 
 
 @pytest.fixture
-def assert_render(rusty, django_template):
+def assert_render(rusty, django_template, request):
     def assert_render_template(template, context, expected):
         assert django_template(template).render(context) == expected
-        assert rusty(template).render(context) == expected
+        
+        if request.node.get_closest_marker("skip_rusty"):
+            pytest.skip("Skipping rusty template test")
+        else:
+            assert rusty(template).render(context) == expected
 
     return assert_render_template

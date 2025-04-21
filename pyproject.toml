@@ -18,6 +18,9 @@ python-source = "python"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
+markers = [
+    "skip_rusty: mark test to skip rusty template testing in assert_render, so only django reference is tested",
+]
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
