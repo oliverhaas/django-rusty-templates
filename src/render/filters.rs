@@ -357,12 +357,20 @@ impl ResolveFilter for YesnoFilter {
                 }
             };
 
+            // Return early with direct string conversion if mapping is empty
+            if mapping.is_empty() {
+                let value = left.to_py(py)?;
+                let str_value = value.str()?.extract::<String>()?;
+                return Ok(Some(Content::String(Cow::Owned(str_value))));
+            }
+
             let parts: Vec<&str> = mapping.split(',').collect();
             
             // Handle None values
             if left.to_py(py)?.is_none() {
-                // Return "maybe" if provided, otherwise fallback to "no"
-                let result = if parts.len() >= 3 {
+                // With more than 2 options, Django uses 3rd option for None if available
+                // With exactly 2 options or more than 3 options, Django uses 2nd option for None
+                let result = if parts.len() == 3 {
                     parts[2].to_string()
                 } else {
                     parts.get(1).unwrap_or(&"no").to_string()
