@@ -358,7 +358,8 @@ impl ResolveFilter for YesnoFilter {
             };
 
             // Return early with direct string conversion if mapping is empty
-            if mapping.is_empty() {
+            // or if it's an invalid value (doesn't contain at least one comma)
+            if mapping.is_empty() || !mapping.contains(',') {
                 let value = left.to_py(py)?;
                 let str_value = value.str()?.extract::<String>()?;
                 return Ok(Some(Content::String(Cow::Owned(str_value))));
