@@ -9,15 +9,6 @@ We try to cover a lot of edge cases here, to limit the risk of introducing incon
 import pytest
 
 
-# Custom boolean class for testing
-class CustomBool:
-    def __init__(self, value):
-        self.value = value
-
-    def __bool__(self):
-        return self.value
-
-
 # django.tests.template_tests.filter_tests.test_yesno.FunctionTests.test_true
 def test_yesno_default_true(assert_render):
     template = "{{ var|yesno }}"
